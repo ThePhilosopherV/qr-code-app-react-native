@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import * as ImagePicker from 'react-native-image-picker';
 import RNQRGenerator from 'rn-qr-generator';
-// import RNFS from 'react-native-fs';
 import {
   View,
   Text,
@@ -15,6 +14,7 @@ import {
 } from 'react-native';
 import { RNCamera, BarCodeReadEvent } from 'react-native-camera';
 import Clipboard from '@react-native-community/clipboard';
+
 
 const App: React.FC = () => {
   const [scannedData, setScannedData] = useState<string>('');
@@ -65,7 +65,10 @@ const App: React.FC = () => {
       console.error('Error sharing data:', error.message);
     }
   };
-
+const home = () =>{
+  setScannedData('');
+    setIsScanning(false);
+}  
   const resetScan = () => {
     setScannedData('');
     setIsScanning(true);
@@ -86,37 +89,28 @@ const App: React.FC = () => {
     );
   };
 
+
+
   const handleScanQRCode = () => {
     setIsScanning(true);
   };
   
-
   const handleUploadQRCode = async (): Promise<void> => {
     ImagePicker.launchImageLibrary({ mediaType: 'photo' }, async (response) => {
       if (!response.didCancel && !response.error) {
-        try {
+        
           RNQRGenerator.detect({uri: response.assets[0].uri })
           .then(response => {
-            const { values } = response; 
-            Alert.alert(values[0]);
+            const { values } = response;
+            if (values.length === 0){
+              Alert.alert("Error","Error detecting qr code");
+            }else{
+              Alert.alert("Scanned data",values[0]);
+            } 
+            
+            
           })
-          .catch(error => console.log('Cannot detect QR code in image', error));
-          // console.log(arr);
           
-          // const imageData = await RNFS.readFile(response.assets[0].uri, 'base64');
-          // const decodedQR = decodeQRCode(imageData);
-          // if (decodedQR) {
-          //   setScannedData(decodedQR.data);
-          //   Alert.alert('QR Code Scanned', `Data: ${result.data}`, [
-          //     { text: 'OK' },
-          //   ]);
-          // } else {
-          //   Alert.alert('QR Code not found in the image');
-          // }
-        } catch (error) {
-          console.error('Error detecting QR code:', error);
-          Alert.alert('Error detecting QR code');
-        }
       }
     });
 };
@@ -162,8 +156,13 @@ const App: React.FC = () => {
               <TouchableOpacity style={styles.button} onPress={resetScan}>
                 <Text style={styles.buttonText}>Scan Again</Text>
               </TouchableOpacity>
+              
             </View>
+           
           </View>
+          <TouchableOpacity style={styles.cancelButton} onPress={home}>
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         renderHomePage()
